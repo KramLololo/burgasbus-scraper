@@ -8,9 +8,9 @@ using namespace std::literals;
 
 int main()
 {
-	constexpr auto requestTemplate = "https://telelink.city/api/v1/949021bc-c2c0-43ad-a146-20e19bbc3649/transport/planner/stops/{}/times"sv;
-	constexpr auto stopsApiUrl         = cpr::Url{"https://telelink.city/api/v1/949021bc-c2c0-43ad-a146-20e19bbc3649/transport/planner/stops"sv};
-	constexpr auto routesApiUrl        = cpr::Url{"https://telelink.city/api/v1/949021bc-c2c0-43ad-a146-20e19bbc3649/transport/planner/routes"sv};
+	constexpr auto requestTemplate     = "https://telelink.city/api/v1/949021bc-c2c0-43ad-a146-20e19bbc3649/transport/planner/stops/{}/times"sv;
+	constexpr auto stopsApiUrl         = "https://telelink.city/api/v1/949021bc-c2c0-43ad-a146-20e19bbc3649/transport/planner/stops"sv;
+	constexpr auto routesApiUrl        = "https://telelink.city/api/v1/949021bc-c2c0-43ad-a146-20e19bbc3649/transport/planner/routes"sv;
 	constexpr auto stopId              = 340; // TODO: Remove after implementing requesting
 
 
