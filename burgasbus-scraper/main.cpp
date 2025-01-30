@@ -15,7 +15,7 @@ int main()
 
 
 	const cpr::Response response = Get(cpr::Url{std::format(requestTemplate, stopId)});
-	const nlohmann::json body = response.text;
+	const nlohmann::json body = nlohmann::json::parse(response.text);
 
 	if (response.status_code == 200)
 		std::cout << std::setw(4) << body << '\n';
