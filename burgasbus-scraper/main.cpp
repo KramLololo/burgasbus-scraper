@@ -17,8 +17,13 @@ int main()
 	// Initialize deque with all stop IDs TODO: Benchmark performance of different containers after implementing requesting
 	std::deque<int> stopIds;
 	for (const auto stops = nlohmann::json::parse(Get(cpr::Url{stopsApiUrl}).text);
-		 const auto &stop: stops)
+		 const auto& stop : stops)
 		stopIds.push_back(stop.at("id"));
+		
+		std::map<int, std::string_view> stopNames;
+		for (const auto stops = nlohmann::json::parse(Get(cpr::Url{stopsApiUrl}).text));
+		  const auto& stop : stops)
+		  
 
 	const cpr::Response response = Get(cpr::Url{std::format(requestTemplate, stopId)});
 	const nlohmann::json body = nlohmann::json::parse(response.text);
