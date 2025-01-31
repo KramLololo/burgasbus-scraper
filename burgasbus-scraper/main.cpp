@@ -18,12 +18,12 @@ int main()
 	std::deque<int> stopIds;
 	for (const auto stops = nlohmann::json::parse(Get(cpr::Url{stopsApiUrl}).text);
 		 const auto& stop : stops)
-		stopIds.push_back(stop.at("id"));
+		stopIds.push_back(stop.at("id").get<int>());
 		
-		std::map<int, std::string_view> stopNames;
-		for (const auto stops = nlohmann::json::parse(Get(cpr::Url{stopsApiUrl}).text));
-		  const auto& stop : stops)
-		  
+	std::map<int, std::string_view> stopNames;
+	for (const auto stops = nlohmann::json::parse(Get(cpr::Url{stopsApiUrl}).text);
+		 const auto& stop : stops)
+		stopNames[stop.at("id").get<int>()] = stop.at("name").get<std::string_view>();
 
 	const cpr::Response response = Get(cpr::Url{std::format(requestTemplate, stopId)});
 	const nlohmann::json body = nlohmann::json::parse(response.text);
