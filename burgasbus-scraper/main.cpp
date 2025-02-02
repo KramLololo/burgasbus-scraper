@@ -24,6 +24,16 @@ int main()
 		 const auto& stop : stops)
 		stopNames[stop.at("id").get<int>()] = stop.at("name").get<std::string_view>();
 
+	std::vector<int> routeIds;
+	for (const auto& routes = nlohmann::json::parse(Get(cpr::Url{routesApiUrl}).text);
+		 const auto& route : routes)
+		routeIds.push_back(route.at("id").get<int>());
+
+	std::string_view routeNames[70];
+	for (const auto& routes = nlohmann::json::parse(Get(cpr::Url{routesApiUrl}).text);
+		 const auto& route : routes)
+		routeNames[route.at("id").get<int>()] = route.at("shortName").get<std::string_view>();
+
 	const cpr::Response response = Get(cpr::Url{std::format(requestTemplate, stopId)});
 	const nlohmann::json body = nlohmann::json::parse(response.text);
 
