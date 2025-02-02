@@ -3,7 +3,6 @@
 
 #include <format>
 #include <string_view>
-#include <deque>
 #include <iostream>
 using namespace std::literals;
 
@@ -14,13 +13,13 @@ int main()
 	constexpr auto routesApiUrl        = "https://telelink.city/api/v1/949021bc-c2c0-43ad-a146-20e19bbc3649/transport/planner/routes"sv;
 	constexpr auto stopId              = 340; // TODO: Remove after implementing requesting
 
-	// Initialize deque with all stop IDs TODO: Benchmark performance of different containers after implementing requesting
-	std::deque<int> stopIds;
-	for (const auto stops = nlohmann::json::parse(Get(cpr::Url{stopsApiUrl}).text);
+	// Initialize vector with all stop IDs
+	std::vector<int> stopIds;
+	for (const auto& stops = nlohmann::json::parse(Get(cpr::Url{stopsApiUrl}).text);
 		 const auto& stop : stops)
 		stopIds.push_back(stop.at("id").get<int>());
 		
-	std::map<int, std::string_view> stopNames;
+	std::string_view stopNames[380];
 	for (const auto stops = nlohmann::json::parse(Get(cpr::Url{stopsApiUrl}).text);
 		 const auto& stop : stops)
 		stopNames[stop.at("id").get<int>()] = stop.at("name").get<std::string_view>();
