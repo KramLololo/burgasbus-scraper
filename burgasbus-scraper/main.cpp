@@ -30,23 +30,20 @@ public:
 		}
 
 		for (const auto& stopId : stopIds)
-			responses.push_back(fetchJson("https://telelink.city/api/v1/949021bc-c2c0-43ad-a146-20e19bbc3649/transport/planner/stops/" + std::to_string(stopId) + "/times"));
+			timesPerStop.push_back(fetchJson("https://telelink.city/api/v1/949021bc-c2c0-43ad-a146-20e19bbc3649/transport/planner/stops/" + std::to_string(stopId) + "/times"));
 
-		for (const auto& response : responses)
+		for (const nlohmann::json& stopTimes : timesPerStop)
 		{
-			std::cout << std::setw(4) << response << '\n';
+			std::cout << std::setw(4) << stopTimes << '\n';
 		}
 	}
 
 private:
-
-
 	std::vector<int> stopIds;
 	std::string_view stopNames[380];
 	std::vector<int> routeIds;
 	std::string_view routeNames[70];
-	std::vector<nlohmann::json> responses;
-};
+	std::vector<nlohmann::json> timesPerStop;
 
 nlohmann::json fetchJson(const std::string_view url)
 {
@@ -61,6 +58,7 @@ nlohmann::json fetchJson(const std::string_view url)
 
 	return nlohmann::json::parse(response.text);
 }
+};
 
 int main()
 {
