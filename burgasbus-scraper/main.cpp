@@ -13,14 +13,14 @@ public:
 		constexpr auto stopsApiUrl = "https://telelink.city/api/v1/949021bc-c2c0-43ad-a146-20e19bbc3649/transport/planner/stops"sv;
 		constexpr auto routesApiUrl = "https://telelink.city/api/v1/949021bc-c2c0-43ad-a146-20e19bbc3649/transport/planner/routes"sv;
 
-		for (const auto& stops = fetchJson(stopsApiUrl); const auto& stop : stops)
+		for (const auto& stop : fetchJson(stopsApiUrl))
 		{
 			const int& stopId = stop["id"].get<int>();
 			stopIds.push_back(stopId);
 			stopNames[stopId] = stop.at("name").get<std::string_view>();
 		}
 
-		for (const auto& routes = fetchJson(routesApiUrl); const auto& route : routes)
+		for (const auto& route : fetchJson(routesApiUrl))
 		{
 			const int& routeId = route["id"].get<int>();
 			routeIds.push_back(routeId);
