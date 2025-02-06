@@ -60,6 +60,5 @@ private:
 
 int main()
 {
-
 	BusTracker busTracker;
 }
