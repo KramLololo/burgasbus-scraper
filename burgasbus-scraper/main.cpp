@@ -5,8 +5,6 @@
 #include <iostream>
 using namespace std::literals;
 
-nlohmann::json fetchJson(std::string_view url);
-
 class BusTracker
 {
 public:
@@ -45,19 +43,19 @@ private:
 	std::string_view routeNames[70];
 	std::vector<nlohmann::json> timesPerStop;
 
-nlohmann::json fetchJson(const std::string_view url)
-{
-	cpr::Response response = Get(cpr::Url{url});
-	std::cout << url << '\n';
-	while (response.text.empty() || response.status_code != 200)
+	static nlohmann::json fetchJson(const std::string_view url)
 	{
-		// TODO: Replace with actual failure handling
-		std::cout << "retry " << url << '\n';
-		response = Get(cpr::Url{url});
-	}
+		cpr::Response response = Get(cpr::Url{url});
+		std::cout << url << '\n';
+		while (response.text.empty() || response.status_code != 200)
+		{
+			// TODO: Replace with actual failure handling
+			std::cout << "retry " << url << '\n';
+			response = Get(cpr::Url{url});
+		}
 
-	return nlohmann::json::parse(response.text);
-}
+		return nlohmann::json::parse(response.text);
+	}
 };
 
 int main()
