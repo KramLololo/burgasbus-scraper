@@ -6,37 +6,63 @@
 #include <iostream>
 using namespace std::literals;
 
+nlohmann::json fetchJson(std::string_view url);
+
+class BusTracker
+{
+public:
+	BusTracker()
+	{
+		constexpr auto stopsApiUrl = "https://telelink.city/api/v1/949021bc-c2c0-43ad-a146-20e19bbc3649/transport/planner/stops"sv;
+		constexpr auto routesApiUrl = "https://telelink.city/api/v1/949021bc-c2c0-43ad-a146-20e19bbc3649/transport/planner/routes"sv;
+
+		for (const auto& stops = fetchJson(stopsApiUrl); const auto& stop : stops)
+		{
+			stopIds.push_back(stop.at("id").get<int>());
+			stopNames[stop.at("id").get<int>()] = stop.at("name").get<std::string_view>();
+		}
+
+		for (const auto& routes = fetchJson(routesApiUrl); const auto& route : routes)
+		{
+			routeIds.push_back(route.at("id").get<int>());
+			routeNames[route.at("id").get<int>()] = route.at("shortName").get<std::string_view>();
+		}
+
+		for (const auto& stopId : stopIds)
+			responses.push_back(fetchJson("https://telelink.city/api/v1/949021bc-c2c0-43ad-a146-20e19bbc3649/transport/planner/stops/" + std::to_string(stopId) + "/times"));
+
+		for (const auto& response : responses)
+		{
+			std::cout << std::setw(4) << response << '\n';
+		}
+	}
+
+private:
+
+
+	std::vector<int> stopIds;
+	std::string_view stopNames[380];
+	std::vector<int> routeIds;
+	std::string_view routeNames[70];
+	std::vector<nlohmann::json> responses;
+};
+
+nlohmann::json fetchJson(const std::string_view url)
+{
+	cpr::Response response = Get(cpr::Url{url});
+	std::cout << url << '\n';
+	while (response.text.empty() || response.status_code != 200)
+	{
+		// TODO: Replace with actual failure handling
+		std::cout << "retry " << url << '\n';
+		response = Get(cpr::Url{url});
+	}
+
+	return nlohmann::json::parse(response.text);
+}
+
 int main()
 {
-	constexpr auto requestTemplate     = "https://telelink.city/api/v1/949021bc-c2c0-43ad-a146-20e19bbc3649/transport/planner/stops/{}/times"sv;
-	constexpr auto stopsApiUrl         = "https://telelink.city/api/v1/949021bc-c2c0-43ad-a146-20e19bbc3649/transport/planner/stops"sv;
-	constexpr auto routesApiUrl        = "https://telelink.city/api/v1/949021bc-c2c0-43ad-a146-20e19bbc3649/transport/planner/routes"sv;
-	constexpr auto stopId              = 340; // TODO: Remove after implementing requesting
 
-	// Initialize vector with all stop IDs
-	std::vector<int> stopIds;
-	for (const auto& stops = nlohmann::json::parse(Get(cpr::Url{stopsApiUrl}).text);
-		 const auto& stop : stops)
-		stopIds.push_back(stop.at("id").get<int>());
-		
-	std::string_view stopNames[380];
-	for (const auto stops = nlohmann::json::parse(Get(cpr::Url{stopsApiUrl}).text);
-		 const auto& stop : stops)
-		stopNames[stop.at("id").get<int>()] = stop.at("name").get<std::string_view>();
-
-	std::vector<int> routeIds;
-	for (const auto& routes = nlohmann::json::parse(Get(cpr::Url{routesApiUrl}).text);
-		 const auto& route : routes)
-		routeIds.push_back(route.at("id").get<int>());
-
-	std::string_view routeNames[70];
-	for (const auto& routes = nlohmann::json::parse(Get(cpr::Url{routesApiUrl}).text);
-		 const auto& route : routes)
-		routeNames[route.at("id").get<int>()] = route.at("shortName").get<std::string_view>();
-
-	const cpr::Response response = Get(cpr::Url{std::format(requestTemplate, stopId)});
-	const nlohmann::json body = nlohmann::json::parse(response.text);
-
-	if (response.status_code == 200)
-		std::cout << std::setw(4) << body << '\n';
+	BusTracker busTracker;
 }
