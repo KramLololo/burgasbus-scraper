@@ -43,7 +43,7 @@ private:
 	std::string_view routeNames[70];
 	std::vector<nlohmann::json> timesPerStop;
 
-	static nlohmann::json fetchJson(const std::string_view url)
+	static nlohmann::json fetchJson(const std::string_view& url)
 	{
 		cpr::Response response = Get(cpr::Url{url});
 		std::cout << url << '\n';
