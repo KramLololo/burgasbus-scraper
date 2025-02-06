@@ -17,14 +17,16 @@ public:
 
 		for (const auto& stops = fetchJson(stopsApiUrl); const auto& stop : stops)
 		{
-			stopIds.push_back(stop.at("id").get<int>());
-			stopNames[stop.at("id").get<int>()] = stop.at("name").get<std::string_view>();
+			const int& stopId = stop["id"].get<int>();
+			stopIds.push_back(stopId);
+			stopNames[stopId] = stop.at("name").get<std::string_view>();
 		}
 
 		for (const auto& routes = fetchJson(routesApiUrl); const auto& route : routes)
 		{
-			routeIds.push_back(route.at("id").get<int>());
-			routeNames[route.at("id").get<int>()] = route.at("shortName").get<std::string_view>();
+			const int& routeId = route["id"].get<int>();
+			routeIds.push_back(routeId);
+			routeNames[routeId] = route.at("shortName").get<std::string_view>();
 		}
 
 		for (const auto& stopId : stopIds)
