@@ -56,22 +56,28 @@ private:
 		return nlohmann::json::parse(response.text);
 	}
 
+	//TODO: Should this function just modify an existing vector? Must see all use cases...
 	static std::vector<nlohmann::json>/*&*/ fetchStopTimes(const std::vector<auto>& stopIds)
 	{
-		std::vector<nlohmann::json> timesPerStop;
-		//std::vector<cpr::AsyncResponse> responses;
-
-		for (const auto& stopId : stopIds)
-			responses.push_back(cpr::GetAsync(cpr::Url{
+		cpr::MultiPerform timeRequests;
+		for (auto session = std::make_shared<cpr::Session>(); const auto& stopId : stopIds)
+		{
+			session->SetUrl(cpr::Url{
 				"https://telelink.city/api/v1/949021bc-c2c0-43ad-a146-20e19bbc3649/transport/planner/stops/" +
 				std::to_string(stopId) + "/times"
-			}));
-		for (auto& times : responses)
+			});
+			timeRequests.AddSession(session);
+			session = std::make_shared<cpr::Session>();
+			//TODO: Add createSessionFromUrl()
+		}
+
+		std::vector<nlohmann::json> timesPerStop;
+		for (auto& times : timeRequests.Get())
 		{
-			auto r = times.get();
-			while (r.status_code != 200)
-				r = cpr::GetAsync(r.url).get();
-			timesPerStop.push_back(nlohmann::json::parse(r.text));
+			while (times.status_code != 200)
+				times = Get(times.url);
+
+			timesPerStop.push_back(nlohmann::json::parse(times.text));
 		}
 
 		return timesPerStop;
@@ -80,8 +86,5 @@ private:
 
 int main()
 {
-	//std::array<cpr::AsyncResponse, 2> response{};
-	//cpr::AsyncResponse rer[2]{};
-	//TODO: Make function validate() to handle fetching failure
 	BusTracker busTracker;
 }
