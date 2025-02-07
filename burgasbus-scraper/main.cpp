@@ -27,8 +27,7 @@ public:
 			routeNames[routeId] = route.at("shortName").get<std::string_view>();
 		}
 
-		for (const auto& stopId : stopIds)
-			timesPerStop.push_back(fetchJson("https://telelink.city/api/v1/949021bc-c2c0-43ad-a146-20e19bbc3649/transport/planner/stops/" + std::to_string(stopId) + "/times"));
+		timesPerStop = fetchTimesOfStops(stopIds);
 
 		for (const nlohmann::json& stopTimes : timesPerStop)
 		{
@@ -56,9 +55,33 @@ private:
 
 		return nlohmann::json::parse(response.text);
 	}
+
+	static std::vector<nlohmann::json>/*&*/ fetchTimesOfStops(const std::vector<auto>& stopIds)
+	{
+		std::vector<nlohmann::json> timesPerStop;
+		//std::vector<cpr::AsyncResponse> responses;
+
+		for (const auto& stopId : stopIds)
+			responses.push_back(cpr::GetAsync(cpr::Url{
+				"https://telelink.city/api/v1/949021bc-c2c0-43ad-a146-20e19bbc3649/transport/planner/stops/" +
+				std::to_string(stopId) + "/times"
+			}));
+		for (auto& times : responses)
+		{
+			auto r = times.get();
+			while (r.status_code != 200)
+				r = cpr::GetAsync(r.url).get();
+			timesPerStop.push_back(nlohmann::json::parse(r.text));
+		}
+
+		return timesPerStop;
+	}
 };
 
 int main()
 {
+	//std::array<cpr::AsyncResponse, 2> response{};
+	//cpr::AsyncResponse rer[2]{};
+	//TODO: Make function validate() to handle fetching failure
 	BusTracker busTracker;
 }
