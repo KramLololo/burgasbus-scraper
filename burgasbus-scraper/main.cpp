@@ -27,7 +27,7 @@ public:
 			routeNames[routeId] = route.at("shortName").get<std::string_view>();
 		}
 
-		timesPerStop = fetchTimesOfStops(stopIds);
+		timesPerStop = fetchStopTimes(stopIds);
 
 		for (const nlohmann::json& stopTimes : timesPerStop)
 		{
@@ -56,7 +56,7 @@ private:
 		return nlohmann::json::parse(response.text);
 	}
 
-	static std::vector<nlohmann::json>/*&*/ fetchTimesOfStops(const std::vector<auto>& stopIds)
+	static std::vector<nlohmann::json>/*&*/ fetchStopTimes(const std::vector<auto>& stopIds)
 	{
 		std::vector<nlohmann::json> timesPerStop;
 		//std::vector<cpr::AsyncResponse> responses;
