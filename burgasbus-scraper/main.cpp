@@ -42,7 +42,7 @@ private:
 	std::vector<int> routeIds;
 	std::string_view routeNames[70];
 	std::vector<nlohmann::json> timesPerStop;
-	std::unordered_map<int, std::shared_ptr<cpr::Session>> sessions;
+	std::unordered_map<int, std::shared_ptr<cpr::Session>> timeRequestSessions;
 
 	void prepareBusTimeRequests()
 	{
@@ -51,7 +51,7 @@ private:
 			const auto& session = std::make_shared<cpr::Session>();
 			session->SetUrl(cpr::Url{"https://telelink.city/api/v1/949021bc-c2c0-43ad-a146-20e19bbc3649/transport/planner/stops/" +
 			std::to_string(stopId) + "/times"});
-			sessions[stopId] = session;
+			timeRequestSessions[stopId] = session;
 		}
 	}
 
@@ -75,7 +75,7 @@ private:
 		cpr::MultiPerform timeRequests;
 		for (const auto stopId : stopIds)
 		{
-			timeRequests.AddSession(sessions.at(stopId));
+			timeRequests.AddSession(timeRequestSessions.at(stopId));
 		}
 
 		std::vector<nlohmann::json> timesPerStop;
