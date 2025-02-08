@@ -27,6 +27,7 @@ public:
 			routeNames[routeId] = route.at("shortName").get<std::string_view>();
 		}
 
+		prepareBusScheduleRequests();
 		timesPerStop = fetchStopTimes(stopIds);
 
 		for (const nlohmann::json& stopTimes : timesPerStop)
@@ -41,6 +42,18 @@ private:
 	std::vector<int> routeIds;
 	std::string_view routeNames[70];
 	std::vector<nlohmann::json> timesPerStop;
+	std::unordered_map<int, std::shared_ptr<cpr::Session>> sessions;
+
+	void prepareBusScheduleRequests()
+	{
+		for (const auto stopId : stopIds)
+		{
+			const auto& session = std::make_shared<cpr::Session>();
+			session->SetUrl(cpr::Url{"https://telelink.city/api/v1/949021bc-c2c0-43ad-a146-20e19bbc3649/transport/planner/stops/" +
+			std::to_string(stopId) + "/times"});
+			sessions[stopId] = session;
+		}
+	}
 
 	static nlohmann::json fetchJson(const std::string_view& url)
 	{
@@ -56,21 +69,13 @@ private:
 		return nlohmann::json::parse(response.text);
 	}
 
-	static std::shared_ptr<cpr::Session> createSharedSessionFromUrl(std::string_view url)
-	{
-		std::shared_ptr<cpr::Session> session = std::make_shared<cpr::Session>();
-		session->SetUrl(cpr::Url{url});
-		return session;
-	}
-
 	//TODO: Should this function just modify an existing vector? Must see all use cases...
-	static std::vector<nlohmann::json>/*&*/ fetchStopTimes(const std::vector<auto>& stopIds)
+	std::vector<nlohmann::json>/*&*/ fetchStopTimes(const std::vector<int>& stopIds)
 	{
 		cpr::MultiPerform timeRequests;
-		for (const auto& stopId : stopIds)
+		for (const auto stopId : stopIds)
 		{
-			auto session = createSharedSessionFromUrl("https://telelink.city/api/v1/949021bc-c2c0-43ad-a146-20e19bbc3649/transport/planner/stops/" + std::to_string(stopId) + "/times");
-			timeRequests.AddSession(session);
+			timeRequests.AddSession(sessions.at(stopId));
 		}
 
 		std::vector<nlohmann::json> timesPerStop;
