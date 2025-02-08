@@ -27,7 +27,7 @@ public:
 			routeNames[routeId] = route.at("shortName").get<std::string_view>();
 		}
 
-		prepareBusScheduleRequests();
+		prepareBusTimeRequests();
 		timesPerStop = fetchStopTimes(stopIds);
 
 		for (const nlohmann::json& stopTimes : timesPerStop)
@@ -44,7 +44,7 @@ private:
 	std::vector<nlohmann::json> timesPerStop;
 	std::unordered_map<int, std::shared_ptr<cpr::Session>> sessions;
 
-	void prepareBusScheduleRequests()
+	void prepareBusTimeRequests()
 	{
 		for (const auto stopId : stopIds)
 		{
