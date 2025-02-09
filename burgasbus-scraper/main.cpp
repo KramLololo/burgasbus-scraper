@@ -84,17 +84,24 @@ private:
 		return nlohmann::json::parse(response.text);
 	}
 
-	//TODO: Should this function just modify an existing vector? Must see all use cases...
-	std::vector<nlohmann::json>/*&*/ fetchStopTimes(const std::vector<int>& stopIds)
+	std::vector<cpr::Response> requestTimesOfStops(const std::vector<int>& stopIds)
 	{
 		cpr::MultiPerform timeRequests;
+
 		for (const auto stopId : stopIds)
 		{
 			timeRequests.AddSession(getTimeRequestSession(stopId));
 		}
 
+		return timeRequests.Get();
+	}
+
+	// TODO: Should this function just modify an existing vector? Must see all use cases...
+	std::vector<nlohmann::json>/*&*/ fetchStopTimes(const std::vector<int>& stopIds)
+	{
 		std::vector<nlohmann::json> timesPerStop;
-		for (auto& times : timeRequests.Get())
+
+		for (auto& times : requestTimesOfStops(stopIds))
 		{
 			validateResponse(times);
 
