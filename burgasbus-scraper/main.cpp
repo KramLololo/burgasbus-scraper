@@ -56,6 +56,15 @@ private:
 		return timeRequestSessions.at(stopId);
 	}
 
+	static void validateResponse(cpr::Response& response)
+	{
+		while (response.status_code != 200 || response.text.empty())
+		{
+			std::cout << "Retrying " << response.url.c_str() << '\n';
+			response = Get(response.url);
+		}
+	}
+
 	void prepareBusTimeRequests()
 	{
 		for (const auto stopId : stopIds)
@@ -71,12 +80,7 @@ private:
 	{
 		cpr::Response response = Get(cpr::Url{url});
 		std::cout << url << '\n';
-		while (response.text.empty() || response.status_code != 200)
-		{
-			// TODO: Replace with actual failure handling
-			std::cout << "retry " << url << '\n';
-			response = Get(cpr::Url{url});
-		}
+		validateResponse(response);
 
 		return nlohmann::json::parse(response.text);
 	}
@@ -93,8 +97,7 @@ private:
 		std::vector<nlohmann::json> timesPerStop;
 		for (auto& times : timeRequests.Get())
 		{
-			while (times.status_code != 200)
-				times = Get(times.url);
+			validateResponse(times);
 
 			timesPerStop.push_back(nlohmann::json::parse(times.text));
 		}
