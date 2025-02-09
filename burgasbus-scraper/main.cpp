@@ -4,6 +4,7 @@
 #include <string_view>
 #include <memory>
 #include <iostream>
+#include <utility>
 using namespace std::literals;
 
 class BusTracker
@@ -45,6 +46,16 @@ private:
 	std::vector<nlohmann::json> timesPerStop;
 	std::unordered_map<int, std::shared_ptr<cpr::Session>> timeRequestSessions;
 
+	void addTimeRequestSession(const int stopId, const std::shared_ptr<cpr::Session>& session)
+	{
+		timeRequestSessions[stopId] = session;
+	}
+
+	std::shared_ptr<cpr::Session>& getTimeRequestSession(const int stopId)
+	{
+		return timeRequestSessions.at(stopId);
+	}
+
 	void prepareBusTimeRequests()
 	{
 		for (const auto stopId : stopIds)
@@ -52,7 +63,7 @@ private:
 			auto session = std::make_shared<cpr::Session>();
 			session->SetUrl(cpr::Url{"https://telelink.city/api/v1/949021bc-c2c0-43ad-a146-20e19bbc3649/transport/planner/stops/" +
 			std::to_string(stopId) + "/times"});
-			timeRequestSessions[stopId] = session;
+			addTimeRequestSession(stopId, session);
 		}
 	}
 
@@ -76,7 +87,7 @@ private:
 		cpr::MultiPerform timeRequests;
 		for (const auto stopId : stopIds)
 		{
-			timeRequests.AddSession(timeRequestSessions.at(stopId));
+			timeRequests.AddSession(getTimeRequestSession(stopId));
 		}
 
 		std::vector<nlohmann::json> timesPerStop;
