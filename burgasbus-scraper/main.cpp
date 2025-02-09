@@ -2,6 +2,7 @@
 #include <nlohmann/json.hpp>
 
 #include <string_view>
+#include <memory>
 #include <iostream>
 using namespace std::literals;
 
