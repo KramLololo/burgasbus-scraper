@@ -2,6 +2,7 @@
 #include <nlohmann/json.hpp>
 
 #include <string_view>
+#include <memory>
 #include <iostream>
 using namespace std::literals;
 
@@ -27,8 +28,8 @@ public:
 			routeNames[routeId] = route.at("shortName").get<std::string_view>();
 		}
 
-		for (const auto& stopId : stopIds)
-			timesPerStop.push_back(fetchJson("https://telelink.city/api/v1/949021bc-c2c0-43ad-a146-20e19bbc3649/transport/planner/stops/" + std::to_string(stopId) + "/times"));
+		prepareBusTimeRequests();
+		timesPerStop = fetchStopTimes(stopIds);
 
 		for (const nlohmann::json& stopTimes : timesPerStop)
 		{
@@ -42,19 +43,72 @@ private:
 	std::vector<int> routeIds;
 	std::string_view routeNames[70];
 	std::vector<nlohmann::json> timesPerStop;
+	std::unordered_map<int, std::shared_ptr<cpr::Session>> timeRequestSessions;
+
+	void addTimeRequestSession(const int stopId, const std::shared_ptr<cpr::Session>& session)
+	{
+		timeRequestSessions[stopId] = session;
+	}
+
+	std::shared_ptr<cpr::Session>& getTimeRequestSession(const int stopId)
+	{
+		return timeRequestSessions.at(stopId);
+	}
+
+	void prepareBusTimeRequests()
+	{
+		for (const auto stopId : stopIds)
+		{
+			auto session = std::make_shared<cpr::Session>();
+			session->SetUrl(cpr::Url{"https://telelink.city/api/v1/949021bc-c2c0-43ad-a146-20e19bbc3649/transport/planner/stops/" +
+			std::to_string(stopId) + "/times"});
+			addTimeRequestSession(stopId, session);
+		}
+	}
+
+	static void validateResponse(cpr::Response& response)
+	{
+		while (response.status_code != 200 || response.text.empty())
+		{
+			std::cout << "Retrying " << response.url.c_str() << '\n';
+			response = Get(response.url);
+		}
+	}
 
 	static nlohmann::json fetchJson(const std::string_view& url)
 	{
 		cpr::Response response = Get(cpr::Url{url});
 		std::cout << url << '\n';
-		while (response.text.empty() || response.status_code != 200)
-		{
-			// TODO: Replace with actual failure handling
-			std::cout << "retry " << url << '\n';
-			response = Get(cpr::Url{url});
-		}
+		validateResponse(response);
 
 		return nlohmann::json::parse(response.text);
+	}
+
+	std::vector<cpr::Response> requestTimesOfStops(const std::vector<int>& stopIds)
+	{
+		cpr::MultiPerform timeRequests;
+
+		for (const auto stopId : stopIds)
+		{
+			timeRequests.AddSession(getTimeRequestSession(stopId));
+		}
+
+		return timeRequests.Get();
+	}
+
+	// TODO: Should this function just modify an existing vector? Must see all use cases...
+	std::vector<nlohmann::json>/*&*/ fetchStopTimes(const std::vector<int>& stopIds)
+	{
+		std::vector<nlohmann::json> timesPerStop;
+
+		for (auto& times : requestTimesOfStops(stopIds))
+		{
+			validateResponse(times);
+
+			timesPerStop.push_back(nlohmann::json::parse(times.text));
+		}
+
+		return timesPerStop;
 	}
 };
 
