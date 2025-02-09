@@ -55,15 +55,6 @@ private:
 		return timeRequestSessions.at(stopId);
 	}
 
-	static void validateResponse(cpr::Response& response)
-	{
-		while (response.status_code != 200 || response.text.empty())
-		{
-			std::cout << "Retrying " << response.url.c_str() << '\n';
-			response = Get(response.url);
-		}
-	}
-
 	void prepareBusTimeRequests()
 	{
 		for (const auto stopId : stopIds)
@@ -72,6 +63,15 @@ private:
 			session->SetUrl(cpr::Url{"https://telelink.city/api/v1/949021bc-c2c0-43ad-a146-20e19bbc3649/transport/planner/stops/" +
 			std::to_string(stopId) + "/times"});
 			addTimeRequestSession(stopId, session);
+		}
+	}
+
+	static void validateResponse(cpr::Response& response)
+	{
+		while (response.status_code != 200 || response.text.empty())
+		{
+			std::cout << "Retrying " << response.url.c_str() << '\n';
+			response = Get(response.url);
 		}
 	}
 
