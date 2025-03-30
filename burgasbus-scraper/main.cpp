@@ -1,7 +1,11 @@
+#include <ctime>
+#include <iomanip>
 #include <iostream>
 #include <memory>
 #include <queue>
+#include <sstream>
 #include <string_view>
+#include <utility>
 #include <vector>
 #include <cpr/cpr.h>
 #include <nlohmann/json.hpp>
@@ -36,6 +40,8 @@ public:
 		{
 			std::cout << std::setw(4) << stopTimes << '\n';
 		}
+
+		queueStopsByTime();
 	}
 
 private:
@@ -45,6 +51,7 @@ private:
 	std::string_view routeNames[70];
 	std::vector<nlohmann::json> timesPerStop;
 	std::unordered_map<int, std::shared_ptr<cpr::Session>> timeRequestSessions;
+	std::priority_queue<std::pair<unsigned int, std::pair<int, int>>, std::vector<std::pair<unsigned int, std::pair<int, int>>>, std::greater<>> stopQueue;
 
 	void addTimeRequestSession(const int stopId, const std::shared_ptr<cpr::Session>& session)
 	{
@@ -97,19 +104,32 @@ private:
 		return timeRequests.Get();
 	}
 
-	// TODO: Should this function just modify an existing vector? Must see all use cases...
-	std::vector<nlohmann::json>/*&*/ fetchStopTimes(const std::vector<int>& stopIds)
+	unsigned int convertIsoToUnixTimestamp(const std::string& isoTimestamp)
 	{
-		std::vector<nlohmann::json> timesPerStop;
+		std::istringstream timestamp(isoTimestamp);
+		std::tm unixTimestamp;
 
-		for (auto& times : requestTimesOfStops(stopIds))
+		timestamp >> std::get_time(&unixTimestamp, "%Y-%m-%dT%H:%M:%SZ");
+
+		return std::mktime(&unixTimestamp);
+	}
+
+	// The function takes advantage of the fact that the responses are ordered in the same way as the stopIds. Create a test for this if you have to.
+	// after this I bet there will be an updateQueue function then this should be prefixed w create or init
+	// It's an interesting idea to use i instead of the stopId
+	void queueStopsByTime()
+	{
+		auto stopArrivalTimes = getStopArrivalTimes(stopIds);
+
+		for (int i = 0; i < 380; i++)
 		{
-			validateResponse(times);
+			if (stopArrivalTimes[i].empty()) continue;
 
-			timesPerStop.push_back(nlohmann::json::parse(times.text));
+			for (auto& arrivalInfo : stopArrivalTimes[i])
+			{
+				stopQueue.emplace(convertIsoToUnixTimestamp(arrivalInfo["times"][0]["scheduledDeparture"].dump()), std::make_pair(stopIds[i], arrivalInfo["route"]["routeId"].get<int>()));
+			}
 		}
-
-		return timesPerStop;
 	}
 };
 
