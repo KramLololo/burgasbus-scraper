@@ -33,10 +33,9 @@ public:
 			routeNames[routeId] = route["shortName"].get<std::string_view>();
 		}*/
 
-		timesPerStop = fetchStopTimes(stopIds);
 		initializeArrivalTimeRequestSessions();
 
-		for (const nlohmann::json& stopTimes : timesPerStop)
+		for (const nlohmann::json& stopTimes : getStopArrivalTimes(stopIds))
 		{
 			std::cout << std::setw(4) << stopTimes << '\n';
 		}
@@ -46,7 +45,6 @@ public:
 
 private:
 	std::vector<int> stopIds;
-	std::vector<nlohmann::json> timesPerStop;
 	//std::string_view stopNames[380];
 	//std::vector<int> routeIds;
 	//std::string_view routeNames[70];
@@ -102,16 +100,24 @@ private:
 		return nlohmann::json::parse(response.text);
 	}
 
-	std::vector<cpr::Response> requestTimesOfStops(const std::vector<int>& stopIds)
+	// TODO: Test modifying a reference to std::vector<nlohmann::json> instead of returning one
+	std::vector<nlohmann::json> getStopArrivalTimes(const std::vector<int>& stopIds)
 	{
-		cpr::MultiPerform timeRequests;
+		std::vector<nlohmann::json> stopArrivalTimes;
 
+		cpr::MultiPerform timeRequests;
 		for (const auto stopId : stopIds)
 		{
 			timeRequests.AddSession(getTimeRequestSession(stopId));
 		}
 
-		return timeRequests.Get();
+		for (auto& response : timeRequests.Get())
+		{
+			validateResponse(response);
+			stopArrivalTimes.emplace_back(nlohmann::json::parse(response.text));
+		}
+
+		return stopArrivalTimes;
 	}
 
 	unsigned int convertIsoToUnixTimestamp(const std::string& isoTimestamp)
