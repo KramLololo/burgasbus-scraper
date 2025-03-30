@@ -63,14 +63,24 @@ private:
 		return timeRequestSessions.at(stopId);
 	}
 
+	static auto getArrivalTimeRequestSessionUrl(const int stopId)
 	{
-		for (const int stopId : stopIds)
+		return "https://telelink.city/api/v1/949021bc-c2c0-43ad-a146-20e19bbc3649/transport/planner/stops/" +
+		       std::to_string(stopId) + "/times";
+	}
+
+	auto createArrivalTimeRequestSession(const int stopId)
+	{
+		auto session = std::make_shared<cpr::Session>();
+		session->SetUrl(cpr::Url{getArrivalTimeRequestSessionUrl(stopId)});
+		return session;
+	}
+
 	void initializeArrivalTimeRequestSessions()
+	{
+		for (const int& stopId : stopIds)
 		{
-			auto session = std::make_shared<cpr::Session>();
-			session->SetUrl(cpr::Url{"https://telelink.city/api/v1/949021bc-c2c0-43ad-a146-20e19bbc3649/transport/planner/stops/" +
-			std::to_string(stopId) + "/times"});
-			addTimeRequestSession(stopId, session);
+			addTimeRequestSession(stopId, createArrivalTimeRequestSession(stopId));
 		}
 	}
 
