@@ -17,21 +17,21 @@ public:
 	BusTracker()
 	{
 		constexpr auto stopsApiUrl = "https://telelink.city/api/v1/949021bc-c2c0-43ad-a146-20e19bbc3649/transport/planner/stops"sv;
-		constexpr auto routesApiUrl = "https://telelink.city/api/v1/949021bc-c2c0-43ad-a146-20e19bbc3649/transport/planner/routes"sv;
+		//constexpr auto routesApiUrl = "https://telelink.city/api/v1/949021bc-c2c0-43ad-a146-20e19bbc3649/transport/planner/routes"sv;
 
 		for (const auto& stop : fetchJson(stopsApiUrl))
 		{
 			const int& stopId = stop["id"].get<int>();
 			stopIds.push_back(stopId);
-			stopNames[stopId] = stop.at("name").get<std::string_view>();
+			//stopNames[stopId] = stop["name"].get<std::string_view>(); // string_view loses value out of scope? .dump() is also an option
 		}
 
-		for (const auto& route : fetchJson(routesApiUrl))
+		/*for (auto& route : fetchJson(routesApiUrl))
 		{
 			const int& routeId = route["id"].get<int>();
 			routeIds.push_back(routeId);
-			routeNames[routeId] = route.at("shortName").get<std::string_view>();
-		}
+			routeNames[routeId] = route["shortName"].get<std::string_view>();
+		}*/
 
 		prepareBusTimeRequests();
 		timesPerStop = fetchStopTimes(stopIds);
@@ -46,10 +46,10 @@ public:
 
 private:
 	std::vector<int> stopIds;
-	std::string_view stopNames[380];
-	std::vector<int> routeIds;
-	std::string_view routeNames[70];
 	std::vector<nlohmann::json> timesPerStop;
+	//std::string_view stopNames[380];
+	//std::vector<int> routeIds;
+	//std::string_view routeNames[70];
 	std::unordered_map<int, std::shared_ptr<cpr::Session>> timeRequestSessions;
 	std::priority_queue<std::pair<unsigned int, std::pair<int, int>>, std::vector<std::pair<unsigned int, std::pair<int, int>>>, std::greater<>> stopQueue;
 
