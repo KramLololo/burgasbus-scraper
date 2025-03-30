@@ -33,8 +33,8 @@ public:
 			routeNames[routeId] = route["shortName"].get<std::string_view>();
 		}*/
 
-		prepareBusTimeRequests();
 		timesPerStop = fetchStopTimes(stopIds);
+		initializeArrivalTimeRequestSessions();
 
 		for (const nlohmann::json& stopTimes : timesPerStop)
 		{
@@ -63,9 +63,9 @@ private:
 		return timeRequestSessions.at(stopId);
 	}
 
-	void prepareBusTimeRequests()
 	{
 		for (const int stopId : stopIds)
+	void initializeArrivalTimeRequestSessions()
 		{
 			auto session = std::make_shared<cpr::Session>();
 			session->SetUrl(cpr::Url{"https://telelink.city/api/v1/949021bc-c2c0-43ad-a146-20e19bbc3649/transport/planner/stops/" +
