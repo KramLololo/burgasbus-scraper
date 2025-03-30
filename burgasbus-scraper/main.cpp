@@ -19,16 +19,16 @@ public:
 		constexpr auto stopsApiUrl = "https://telelink.city/api/v1/949021bc-c2c0-43ad-a146-20e19bbc3649/transport/planner/stops"sv;
 		//constexpr auto routesApiUrl = "https://telelink.city/api/v1/949021bc-c2c0-43ad-a146-20e19bbc3649/transport/planner/routes"sv;
 
-		for (const auto& stop : fetchJson(stopsApiUrl))
+		for (auto& stop : fetchJson(stopsApiUrl))
 		{
 			const int& stopId = stop["id"].get<int>();
-			stopIds.push_back(stopId);
+			stopIds.emplace_back(stopId);
 			//stopNames[stopId] = stop["name"].get<std::string_view>(); // string_view loses value out of scope? .dump() is also an option
 		}
 
 		/*for (auto& route : fetchJson(routesApiUrl))
 		{
-			const int& routeId = route["id"].get<int>();
+			int routeId = route["id"].get<int>();
 			routeIds.push_back(routeId);
 			routeNames[routeId] = route["shortName"].get<std::string_view>();
 		}*/
@@ -53,7 +53,7 @@ private:
 
 	void addTimeRequestSession(const int stopId, const std::shared_ptr<cpr::Session>& session)
 	{
-		timeRequestSessions[stopId] = session;
+		timeRequestSessions.try_emplace(stopId, session);
 	}
 
 	std::shared_ptr<cpr::Session>& getTimeRequestSession(const int stopId)
@@ -82,19 +82,18 @@ private:
 		}
 	}
 
-	static void validateResponse(cpr::Response& response)
+	void validateResponse(auto& response)
 	{
-		while (response.status_code != 200 || response.text.empty())
+		while (response.text.empty() || response.status_code != 200)
 		{
-			std::cout << "Retrying " << response.url.c_str() << '\n';
+			std::cout << "Retrying " << response.url.str() << '\n';
 			response = Get(response.url);
 		}
 	}
 
-	static nlohmann::json fetchJson(const std::string_view& url)
+	nlohmann::json fetchJson(const std::string_view& url)
 	{
-		cpr::Response response = Get(cpr::Url{url});
-		std::cout << url << '\n';
+		auto response = Get(cpr::Url{url});
 		validateResponse(response);
 
 		return nlohmann::json::parse(response.text);
