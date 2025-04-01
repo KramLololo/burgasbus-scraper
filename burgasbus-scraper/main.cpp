@@ -16,17 +16,14 @@ class BusTracker
 public:
 	BusTracker()
 	{
-		constexpr auto stopsApiUrl = "https://telelink.city/api/v1/949021bc-c2c0-43ad-a146-20e19bbc3649/transport/planner/stops"sv;
-		//constexpr auto routesApiUrl = "https://telelink.city/api/v1/949021bc-c2c0-43ad-a146-20e19bbc3649/transport/planner/routes"sv;
-
-		for (auto& stop : fetchJson(stopsApiUrl))
+		for (const auto& stop : fetchJson("https://telelink.city/api/v1/949021bc-c2c0-43ad-a146-20e19bbc3649/transport/planner/stops"))
 		{
 			const int& stopId = stop["id"].get<int>();
 			stopIds.emplace_back(stopId);
 			//stopNames[stopId] = stop["name"].get<std::string_view>(); // string_view loses value out of scope? .dump() is also an option
 		}
 
-		/*for (auto& route : fetchJson(routesApiUrl))
+		/*for (auto& route : fetchJson("https://telelink.city/api/v1/949021bc-c2c0-43ad-a146-20e19bbc3649/transport/planner/routes"))
 		{
 			int routeId = route["id"].get<int>();
 			routeIds.push_back(routeId);
