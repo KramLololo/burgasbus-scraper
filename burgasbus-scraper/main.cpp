@@ -139,7 +139,7 @@ private:
 		{
 			for (const nlohmann::json& arrivalInfo : stopArrivalTimes[i])
 			{
-				stopQueue.emplace(convertIsoToUnixTimestamp(arrivalInfo["times"][0]["scheduledDeparture"].dump()), std::make_pair(stopIds[i], arrivalInfo["route"]["routeId"].get<int>()));
+				stopQueue.emplace(convertIsoToUnixTimestamp(arrivalInfo["times"][0]["scheduledDeparture"].get<std::string>()), std::make_pair(stopIds[i], arrivalInfo["route"]["routeId"].get<int>()));
 			}
 		}
 	}
