@@ -30,12 +30,6 @@ public:
 		}*/
 
 		initializeArrivalTimeRequestSessions();
-
-		for (const nlohmann::json& stopTimes : getStopArrivalTimes(stopIds))
-		{
-			std::cout << std::setw(4) << stopTimes << '\n';
-		}
-
 		queueStopsByTime();
 	}
 
