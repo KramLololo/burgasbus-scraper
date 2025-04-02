@@ -104,7 +104,7 @@ private:
 		std::vector<nlohmann::json> stopArrivalTimes;
 
 		cpr::MultiPerform timeRequests;
-		for (const auto stopId : stopIds)
+		for (const int stopId : stopIds)
 		{
 			timeRequests.AddSession(getArrivalTimeRequestSession(stopId));
 		}
@@ -133,7 +133,7 @@ private:
 	// It's an interesting idea to use i instead of the stopId
 	void queueStopsByTime()
 	{
-		auto stopArrivalTimes = fetchStopArrivalTimes(stopIds);
+		std::vector<nlohmann::json> stopArrivalTimes = fetchStopArrivalTimes(stopIds);
 
 		for (int i = 0; i < stopIds.size(); i++)
 		{
