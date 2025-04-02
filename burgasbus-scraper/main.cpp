@@ -16,13 +16,9 @@ class BusTracker
 public:
 	BusTracker()
 	{
-		for (const auto& stop : fetchJson("https://telelink.city/api/v1/949021bc-c2c0-43ad-a146-20e19bbc3649/transport/planner/stops"))
-		{
-			const int& stopId = stop["id"].get<int>();
-			stopIds.emplace_back(stopId);
-			//stopNames[stopId] = stop["name"].get<std::string_view>(); // string_view loses value out of scope? .dump() is also an option
-		}
+		initializeStopIds();
 
+		// TODO: Extract this into its own function
 		/*for (auto& route : fetchJson("https://telelink.city/api/v1/949021bc-c2c0-43ad-a146-20e19bbc3649/transport/planner/routes"))
 		{
 			int routeId = route["id"].get<int>();
@@ -47,6 +43,16 @@ private:
 	//std::string_view routeNames[70];
 	std::unordered_map<int, std::shared_ptr<cpr::Session>> timeRequestSessions;
 	std::priority_queue<std::pair<unsigned int, std::pair<int, int>>, std::vector<std::pair<unsigned int, std::pair<int, int>>>, std::greater<>> stopQueue;
+
+	void initializeStopIds()
+	{
+		for (const auto& stop : fetchJson("https://telelink.city/api/v1/949021bc-c2c0-43ad-a146-20e19bbc3649/transport/planner/stops"))
+		{
+			const int& stopId = stop["id"].get<int>();
+			stopIds.emplace_back(stopId);
+			//stopNames[stopId] = stop["name"].get<std::string_view>(); // string_view loses value out of scope? .dump() is also an option
+		}
+	}
 
 	void addTimeRequestSession(const int stopId, const std::shared_ptr<cpr::Session>& session)
 	{
