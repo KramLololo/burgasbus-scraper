@@ -54,12 +54,12 @@ private:
 		}
 	}
 
-	void addTimeRequestSession(const int stopId, const std::shared_ptr<cpr::Session>& session)
+	void setArrivalTimeRequestSession(const int stopId, const std::shared_ptr<cpr::Session>& session)
 	{
 		timeRequestSessions.try_emplace(stopId, session);
 	}
 
-	std::shared_ptr<cpr::Session>& getTimeRequestSession(const int stopId)
+	std::shared_ptr<cpr::Session>& getArrivalTimeRequestSession(const int stopId)
 	{
 		return timeRequestSessions.at(stopId);
 	}
@@ -81,7 +81,7 @@ private:
 	{
 		for (const int& stopId : stopIds)
 		{
-			addTimeRequestSession(stopId, createArrivalTimeRequestSession(stopId));
+			setArrivalTimeRequestSession(stopId, createArrivalTimeRequestSession(stopId));
 		}
 	}
 
@@ -110,7 +110,7 @@ private:
 		cpr::MultiPerform timeRequests;
 		for (const auto stopId : stopIds)
 		{
-			timeRequests.AddSession(getTimeRequestSession(stopId));
+			timeRequests.AddSession(getArrivalTimeRequestSession(stopId));
 		}
 
 		for (auto& response : timeRequests.Get())
