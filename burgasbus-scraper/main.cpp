@@ -1,10 +1,13 @@
 #include <ctime>
+#include <functional>
 #include <iomanip>
 #include <iostream>
 #include <memory>
 #include <queue>
 #include <sstream>
+#include <string>
 #include <string_view>
+#include <unordered_map>
 #include <utility>
 #include <vector>
 #include <cpr/cpr.h>
