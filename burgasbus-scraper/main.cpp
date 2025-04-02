@@ -45,7 +45,7 @@ private:
 	{
 		for (const auto& stop : fetchJson("https://telelink.city/api/v1/949021bc-c2c0-43ad-a146-20e19bbc3649/transport/planner/stops"))
 		{
-			const int& stopId = stop["id"].get<int>();
+			const int stopId = stop["id"].get<int>();
 			stopIds.emplace_back(stopId);
 			//stopNames[stopId] = stop["name"].get<std::string_view>(); // string_view loses value out of scope? .dump() is also an option
 		}
@@ -76,7 +76,7 @@ private:
 
 	void initializeArrivalTimeRequestSessions()
 	{
-		for (const int& stopId : stopIds)
+		for (const int stopId : stopIds)
 		{
 			setArrivalTimeRequestSession(stopId, createArrivalTimeRequestSession(stopId));
 		}
