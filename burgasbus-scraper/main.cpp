@@ -46,8 +46,8 @@ private:
 		for (const auto& stop : fetchJson("https://telelink.city/api/v1/949021bc-c2c0-43ad-a146-20e19bbc3649/transport/planner/stops"))
 		{
 			const int stopId = stop["id"].get<int>();
-			stopIds.emplace_back(stopId);
-			//stopNames[stopId] = stop["name"].get<std::string_view>(); // string_view loses value out of scope? .dump() is also an option
+			stopIds.push_back(stopId);
+			//stopNames[stopId] = stop["name"].get<std::string_view>(); // string_view loses value out of scope? .dump() is also an option. What if we used stopIds' last element inside the [] instead of stopId although that does sound a bit wasteful
 		}
 	}
 
@@ -58,7 +58,7 @@ private:
 
 	std::shared_ptr<cpr::Session>& getArrivalTimeRequestSession(const int stopId)
 	{
-		return timeRequestSessions.at(stopId);
+		return timeRequestSessions[stopId];
 	}
 
 	static std::string createArrivalTimeRequestSessionUrl(const int stopId)
@@ -67,7 +67,7 @@ private:
 		       std::to_string(stopId) + "/times";
 	}
 
-	auto createArrivalTimeRequestSession(const int stopId)
+	static auto createArrivalTimeRequestSession(const int stopId)
 	{
 		auto session = std::make_shared<cpr::Session>();
 		session->SetUrl(cpr::Url{createArrivalTimeRequestSessionUrl(stopId)});
@@ -112,19 +112,18 @@ private:
 		for (auto& response : timeRequests.Get())
 		{
 			validateResponse(response);
-			stopArrivalTimes.emplace_back(nlohmann::json::parse(response.text));
+			stopArrivalTimes.push_back(nlohmann::json::parse(response.text));
 		}
 
 		return stopArrivalTimes;
 	}
 
-	unsigned int convertIsoToUnixTimestamp(const std::string& isoTimestamp)
+	static unsigned int convertIsoToUnixTimestamp(const std::string& isoTimestamp)
 	{
 		std::istringstream timestamp(isoTimestamp);
 		std::tm unixTimestamp;
 
 		timestamp >> std::get_time(&unixTimestamp, "%Y-%m-%dT%H:%M:%SZ");
-
 		return std::mktime(&unixTimestamp);
 	}
 
@@ -135,7 +134,7 @@ private:
 	{
 		std::vector<nlohmann::json> stopArrivalTimes = fetchStopArrivalTimes(stopIds);
 
-		for (int i = 0; i < stopIds.size(); i++)
+		for (size_t i = 0; i < stopIds.size(); i++)
 		{
 			for (const nlohmann::json& arrivalInfo : stopArrivalTimes[i])
 			{
