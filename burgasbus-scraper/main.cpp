@@ -61,7 +61,7 @@ private:
 		return timeRequestSessions.at(stopId);
 	}
 
-	static auto getArrivalTimeRequestSessionUrl(const int stopId)
+	static std::string createArrivalTimeRequestSessionUrl(const int stopId)
 	{
 		return "https://telelink.city/api/v1/949021bc-c2c0-43ad-a146-20e19bbc3649/transport/planner/stops/" +
 		       std::to_string(stopId) + "/times";
@@ -70,7 +70,7 @@ private:
 	auto createArrivalTimeRequestSession(const int stopId)
 	{
 		auto session = std::make_shared<cpr::Session>();
-		session->SetUrl(cpr::Url{getArrivalTimeRequestSessionUrl(stopId)});
+		session->SetUrl(cpr::Url{createArrivalTimeRequestSessionUrl(stopId)});
 		return session;
 	}
 
@@ -99,7 +99,7 @@ private:
 		return nlohmann::json::parse(response.text);
 	}
 
-	std::vector<nlohmann::json> getStopArrivalTimes(const std::vector<int>& stopIds)
+	std::vector<nlohmann::json> fetchStopArrivalTimes(const std::vector<int>& stopIds)
 	{
 		std::vector<nlohmann::json> stopArrivalTimes;
 
@@ -133,7 +133,7 @@ private:
 	// It's an interesting idea to use i instead of the stopId
 	void queueStopsByTime()
 	{
-		auto stopArrivalTimes = getStopArrivalTimes(stopIds);
+		auto stopArrivalTimes = fetchStopArrivalTimes(stopIds);
 
 		for (int i = 0; i < stopIds.size(); i++)
 		{
