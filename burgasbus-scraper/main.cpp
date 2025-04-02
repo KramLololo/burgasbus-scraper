@@ -102,7 +102,6 @@ private:
 		return nlohmann::json::parse(response.text);
 	}
 
-	// TODO: Test modifying a reference to std::vector<nlohmann::json> instead of returning one
 	std::vector<nlohmann::json> getStopArrivalTimes(const std::vector<int>& stopIds)
 	{
 		std::vector<nlohmann::json> stopArrivalTimes;
