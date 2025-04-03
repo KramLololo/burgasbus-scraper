@@ -1,6 +1,5 @@
 #include <algorithm>
 #include <ctime>
-#include <functional>
 #include <iomanip>
 #include <iostream>
 #include <memory>
@@ -8,7 +7,6 @@
 #include <sstream>
 #include <string>
 #include <string_view>
-#include <utility>
 #include <vector>
 #include <cpr/cpr.h>
 #include <nlohmann/json.hpp>
@@ -37,7 +35,20 @@ private:
 	//std::vector<int> routeIds;
 	//std::string_view routeNames[70];
 	std::vector<std::shared_ptr<cpr::Session>> timeRequestSessions;
-	std::priority_queue<std::pair<unsigned int, std::pair<int, int>>, std::vector<std::pair<unsigned int, std::pair<int, int>>>, std::greater<>> stopQueue;
+
+	struct stopDeparture
+	{
+		unsigned int timeUntilBusDeparture;
+		int stopId;
+		int routeId;
+
+		// For use in the priority queue
+		bool operator<(const stopDeparture& rhs) const
+		{
+			return timeUntilBusDeparture > rhs.timeUntilBusDeparture;
+		}
+	};
+	std::priority_queue<stopDeparture> departureQueue;
 
 	void initializeStopIds()
 	{
@@ -135,7 +146,9 @@ private:
 		{
 			for (const nlohmann::json& arrivalInfo : stopArrivalTimes[i])
 			{
-				stopQueue.emplace(convertIsoToUnixTimestamp(arrivalInfo["times"][0]["scheduledDeparture"].get<std::string>()), std::make_pair(stopIds[i], arrivalInfo["route"]["routeId"].get<int>()));
+				departureQueue.emplace(
+					convertIsoToUnixTimestamp(arrivalInfo["times"][0]["scheduledDeparture"].get<std::string>()),
+					stopIds[i], arrivalInfo["route"]["routeId"].get<int>());
 			}
 		}
 	}
