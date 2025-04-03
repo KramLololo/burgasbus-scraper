@@ -41,7 +41,10 @@ private:
 
 	void initializeStopIds()
 	{
-		for (const auto& stop : fetchJson("https://telelink.city/api/v1/949021bc-c2c0-43ad-a146-20e19bbc3649/transport/planner/stops"))
+		const auto& stops = fetchJson("https://telelink.city/api/v1/949021bc-c2c0-43ad-a146-20e19bbc3649/transport/planner/stops");
+
+		stopIds.reserve(stops.size());
+		for (const nlohmann::json& stop : stops)
 		{
 			const int stopId = stop["id"].get<int>();
 			stopIds.push_back(stopId);
