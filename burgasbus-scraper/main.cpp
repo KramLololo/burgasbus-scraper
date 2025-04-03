@@ -7,7 +7,6 @@
 #include <sstream>
 #include <string>
 #include <string_view>
-#include <unordered_map>
 #include <utility>
 #include <vector>
 #include <cpr/cpr.h>
@@ -20,7 +19,6 @@ public:
 	BusTracker()
 	{
 		initializeStopIds();
-
 		// TODO: Extract this into its own function
 		/*for (auto& route : fetchJson("https://telelink.city/api/v1/949021bc-c2c0-43ad-a146-20e19bbc3649/transport/planner/routes"))
 		{
@@ -28,7 +26,6 @@ public:
 			routeIds.push_back(routeId);
 			routeNames[routeId] = route["shortName"].get<std::string_view>();
 		}*/
-
 		initializeArrivalTimeRequestSessions();
 		queueStopsByTime();
 	}
@@ -38,7 +35,7 @@ private:
 	//std::string_view stopNames[380];
 	//std::vector<int> routeIds;
 	//std::string_view routeNames[70];
-	std::unordered_map<int, std::shared_ptr<cpr::Session>> timeRequestSessions;
+	std::vector<std::shared_ptr<cpr::Session>> timeRequestSessions;
 	std::priority_queue<std::pair<unsigned int, std::pair<int, int>>, std::vector<std::pair<unsigned int, std::pair<int, int>>>, std::greater<>> stopQueue;
 
 	void initializeStopIds()
@@ -49,16 +46,6 @@ private:
 			stopIds.push_back(stopId);
 			//stopNames[stopId] = stop["name"].get<std::string_view>(); // string_view loses value out of scope? .dump() is also an option. What if we used stopIds' last element inside the [] instead of stopId although that does sound a bit wasteful
 		}
-	}
-
-	void setArrivalTimeRequestSession(const int stopId, const std::shared_ptr<cpr::Session>& session)
-	{
-		timeRequestSessions.try_emplace(stopId, session);
-	}
-
-	std::shared_ptr<cpr::Session>& getArrivalTimeRequestSession(const int stopId)
-	{
-		return timeRequestSessions[stopId];
 	}
 
 	static std::string createArrivalTimeRequestSessionUrl(const int stopId)
@@ -76,10 +63,17 @@ private:
 
 	void initializeArrivalTimeRequestSessions()
 	{
+		timeRequestSessions.reserve(stopIds.size());
+
 		for (const int stopId : stopIds)
 		{
-			setArrivalTimeRequestSession(stopId, createArrivalTimeRequestSession(stopId));
+			timeRequestSessions[stopId] = createArrivalTimeRequestSession(stopId);
 		}
+	}
+
+	std::shared_ptr<cpr::Session>& getArrivalTimeRequestSession(const int stopId)
+	{
+		return timeRequestSessions[stopId];
 	}
 
 	void validateResponse(auto& response)
