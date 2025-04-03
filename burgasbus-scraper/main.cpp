@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <ctime>
 #include <functional>
 #include <iomanip>
@@ -63,8 +64,7 @@ private:
 
 	void initializeArrivalTimeRequestSessions()
 	{
-		timeRequestSessions.reserve(stopIds.size());
-
+		timeRequestSessions.resize(*std::ranges::max_element(stopIds) + 1); // so we can map all ids to their sessions. An actual map in this case is more expensive than a vector.
 		for (const int stopId : stopIds)
 		{
 			timeRequestSessions[stopId] = createArrivalTimeRequestSession(stopId);
